@@ -36,12 +36,12 @@ handle_request(
     http::request<Body, http::basic_fields<Allocator>>&& req,
     Send&& send)
 {
-    std::cout << "tid: " << std::this_thread::get_id() << ", request path: " << req.target() << ", body: " << req.body() << std::endl;
+    // std::cout << "tid: " << std::this_thread::get_id() << ", request path: " << req.target() << ", body: " << req.body() << std::endl;
 
     timer::Timer timer;
     auto outputText = task->run(req.body());
-    std::cout << "Best translation: " << outputText << std::endl;
-    std::cout << "Translation took: " << timer.elapsed() << "s" << std::endl;
+    // std::cout << "Best translation: " << outputText << std::endl;
+    // std::cout << "Translation took: " << timer.elapsed() << "s" << std::endl;
 
     http::response<http::string_body> res{http::status::ok, req.version()};
     res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
