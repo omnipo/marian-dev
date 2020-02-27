@@ -32,13 +32,13 @@ template<
     class Send>
 void
 handle_request(
-    std::shared_ptr<TranslateService<BeamSearch>> task,
+    std::shared_ptr<TranslateService<BeamSearch>> const& task,
     http::request<Body, http::basic_fields<Allocator>>&& req,
     Send&& send)
 {
     // std::cout << "tid: " << std::this_thread::get_id() << ", request path: " << req.target() << ", body: " << req.body() << std::endl;
 
-    timer::Timer timer;
+    // timer::Timer timer;
     auto outputText = task->run(req.body());
     // std::cout << "Best translation: " << outputText << std::endl;
     // std::cout << "Translation took: " << timer.elapsed() << "s" << std::endl;
@@ -100,10 +100,8 @@ struct send_lambda
 void
 do_session(
     tcp::socket& socket,
-    std::shared_ptr<Options> const& options)
+    std::shared_ptr<TranslateService<BeamSearch>> const& task)
 {
-    auto task = New<TranslateService<BeamSearch>>(options);
-
     bool close = false;
     beast::error_code ec;
 
@@ -147,8 +145,9 @@ int main(int argc, char* argv[])
 {
     try
     {
-        // Share the options between threads.
+        // Share the options & decoder between threads.
         auto options = parseOptions(argc, argv, cli::mode::server, true);
+        auto task = New<TranslateService<BeamSearch>>(options);
 
         auto const address = net::ip::make_address("0.0.0.0");
         auto const port = (short unsigned)options->get<size_t>("port", 5001);
@@ -170,7 +169,7 @@ int main(int argc, char* argv[])
             std::thread{std::bind(
                 &do_session,
                 std::move(socket),
-                options)}.detach();
+                task)}.detach();
         }
     }
     catch (const std::exception& e)
