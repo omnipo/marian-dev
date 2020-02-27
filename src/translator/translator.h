@@ -219,7 +219,6 @@ public:
     // get device IDs
     auto devices = Config::getDevices(options_);
     numDevices_ = devices.size();
-    std::cout << "numDevices_ = " << numDevices_ << std::endl;
 
     // initialize scorers
     for(auto device : devices) {
