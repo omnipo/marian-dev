@@ -255,7 +255,7 @@ public:
     batchGenerator.prepare();
 
     {
-      ThreadPool threadPool_(numDevices_, numDevices_);
+      // ThreadPool threadPool_(numDevices_, numDevices_);
 
       for(auto batch : batchGenerator) {
 
@@ -278,8 +278,9 @@ public:
             collector->add((long)history->getLineNum(), best1.str(), bestn.str());
           }
         };
+        task(batchId);
 
-        threadPool_.enqueue(task, batchId);
+        // threadPool_.enqueue(task, batchId);
         batchId++;
       }
     }
