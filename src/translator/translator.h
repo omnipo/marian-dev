@@ -255,7 +255,7 @@ public:
     batchGenerator.prepare();
 
     {
-      ThreadPool threadPool_(numDevices_, numDevices_);
+      // ThreadPool threadPool_(numDevices_, numDevices_);
 
       for(auto batch : batchGenerator) {
 
@@ -279,7 +279,8 @@ public:
           }
         };
 
-        threadPool_.enqueue(task, batchId);
+        // threadPool_.enqueue(task, batchId);
+        task(batchId);
         batchId++;
       }
     }

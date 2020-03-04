@@ -237,18 +237,23 @@ private:
 
   BatchPtr next() {
     if(bufferedBatches_.empty()) {
-      // out of data: need to get next batch from background thread
-      // We only get here if the future has been scheduled to run; it must be valid.
-      ABORT_IF(!futureBufferedBatches_.valid(), "Attempted to wait for futureBufferedBatches_ when none pending.\n"
-          "This error often occurs when Marian tries to restore the training data iterator, but the corpus has been changed or replaced.\n"
-          "If you have changed the training corpus, add --no-restore-corpus to the training command and run it again.");
-      bufferedBatches_ = std::move(futureBufferedBatches_.get());
-      // if bg thread returns an empty swath, we hit the end of the epoch
+      // // out of data: need to get next batch from background thread
+      // // We only get here if the future has been scheduled to run; it must be valid.
+      // ABORT_IF(!futureBufferedBatches_.valid(), "Attempted to wait for futureBufferedBatches_ when none pending.\n"
+      //     "This error often occurs when Marian tries to restore the training data iterator, but the corpus has been changed or replaced.\n"
+      //     "If you have changed the training corpus, add --no-restore-corpus to the training command and run it again.");
+      // bufferedBatches_ = std::move(futureBufferedBatches_.get());
+      // // if bg thread returns an empty swath, we hit the end of the epoch
+      // if (bufferedBatches_.empty()) {
+      //   return nullptr;
+      // }
+      // // and kick off the next bg operation
+      // fetchBatchesAsync();
+
+      bufferedBatches_ = fetchBatches();
       if (bufferedBatches_.empty()) {
         return nullptr;
       }
-      // and kick off the next bg operation
-      fetchBatchesAsync();
     }
     auto batch = bufferedBatches_.front();
     bufferedBatches_.pop_front();
@@ -260,7 +265,7 @@ public:
   BatchGenerator(Ptr<DataSet> data,
                  Ptr<Options> options,
                  Ptr<BatchStats> stats = nullptr)
-      : data_(data), options_(options), stats_(stats), threadPool_(1) {
+      : data_(data), options_(options), stats_(stats), threadPool_(0) {
     auto shuffle = options_->get<std::string>("shuffle");
     shuffleData_ = shuffle == "data";
     shuffleBatches_ = shuffleData_ || shuffle == "batches";
@@ -288,7 +293,9 @@ public:
     newlyPrepared_ = true;
 
     // start the background pre-fetch operation
-    fetchBatchesAsync();
+    // fetchBatchesAsync();
+
+    bufferedBatches_ = fetchBatches();
   }
 
   // Used to restore the state of a BatchGenerator after
